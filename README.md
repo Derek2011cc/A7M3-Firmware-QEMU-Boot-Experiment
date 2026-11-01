@@ -1,8 +1,8 @@
+# A7M3 固件 QEMU 启动实验
+
 > 项目有借助大量AI工具，请注意辨别
 >
 > qq交流群:736434809
-
-# A7M3-Firmware-QEMU-Boot-Experiment
 
 在 ma1co/qemu 的 `cxd90045` 机器上启动 **ILCE-7M3（A7M3）** 相机固件
 （Linux 3.0.27_nl-rt106+，ARM32 Cortex-A5）的离线实验记录、补丁与复现脚本。
