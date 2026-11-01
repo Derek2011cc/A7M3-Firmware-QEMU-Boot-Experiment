@@ -1,0 +1,11 @@
+# Local-only Sony binaries and generated files: never commit.
+files/
+
+# Defensive patterns (in case files are placed beside the docs).
+*.bin
+*.img
+*.ko
+vmlinux*
+initrd*
+qemu-emmc*
+MANIFEST.sha256

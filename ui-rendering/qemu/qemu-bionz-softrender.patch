@@ -1,0 +1,412 @@
+--- /home/derek/qemu-ma1co/hw/arm/bionz.c.orig	2026-11-01 07:00:58.903104061 +0800
++++ /home/derek/qemu-ma1co/hw/arm/bionz.c	2026-11-01 09:24:26.307662000 +0800
+@@ -1244,6 +1244,364 @@
+     return val;
+ }
+ 
++
++/* --- local experiment: capture GPE command slots and 2D submissions --- */
++static uint32_t cxd90045_sugi_last_cmd;
++static unsigned int cxd90045_sugi_cmd_count;
++static unsigned int cxd90045_sugi_2d_count;
++
++static bool cxd90045_sugi_cmd_trace(void)
++{
++    static int enabled = -1;
++    if (enabled < 0) {
++        enabled = getenv("A7M3_SUGI_CMDS") != NULL;
++    }
++    return enabled;
++}
++
++static bool cxd90045_sugi_addr_ok(hwaddr addr, unsigned int n)
++{
++    return (addr < 0x40000000ULL) ||
++           (addr >= 0x80000000ULL && addr + n <= 0x90000000ULL);
++}
++
++static void cxd90045_sugi_dump_words(const char *tag, unsigned int idx,
++                                     hwaddr addr, unsigned int words)
++{
++    uint32_t buf[1024];
++    unsigned int i;
++    if (!cxd90045_sugi_addr_ok(addr, words * 4)) {
++        return;
++    }
++    if (words > 1024) {
++        words = 1024;
++    }
++    cpu_physical_memory_read(addr, buf, words * 4);
++    fprintf(stderr, "%s[%u] addr=%08x:", tag, idx, (unsigned)addr);
++    for (i = 0; i < words; i++) {
++        fprintf(stderr, " %08x", buf[i]);
++    }
++    fprintf(stderr, "\n");
++}
++
++
++static void cxd90045_sugi_scan_cmd(unsigned int idx, uint32_t addr)
++{
++    uint32_t buf[16];
++    int i;
++    cxd90045_sugi_dump_words("SUGI-CMDX", idx, (hwaddr)addr, 32);
++    if (!cxd90045_sugi_addr_ok((hwaddr)addr, sizeof(buf))) {
++        return;
++    }
++    cpu_physical_memory_read((hwaddr)addr, buf, sizeof(buf));
++    for (i = 0; i + 1 < 16; i++) {
++        if ((buf[i] & 0xf000) == 0xf000 && (buf[i] >> 16) == 0x0116) {
++            uint32_t v = buf[i + 1];
++            cxd90045_sugi_dump_words("SUGI-116B", idx, (hwaddr)v, 32);
++            cxd90045_sugi_dump_words("SUGI-116W", idx,
++                                     (hwaddr)((uint64_t)v << 2), 32);
++            cxd90045_sugi_dump_words("SUGI-116U", idx,
++                                     (hwaddr)((uint64_t)v << 4), 32);
++            break;
++        }
++    }
++}
++
++static void cxd90045_sugi_scan_regs(unsigned int idx, uint32_t base)
++{
++    uint32_t buf[1024];
++    int i;
++    if (!cxd90045_sugi_addr_ok((hwaddr)base, sizeof(buf))) {
++        return;
++    }
++    cpu_physical_memory_read((hwaddr)base, buf, sizeof(buf));
++    for (i = 0; i + 1 < 1024; i++) {
++        uint32_t w = buf[i];
++        if (w >= 0x20000000u && w < 0x30000000u) {
++            cxd90045_sugi_dump_words("SUGI-PTR", idx, (hwaddr)w, 32);
++        }
++        if ((w & 0xffff) == 0xf000) {
++            uint32_t op = w >> 16;
++            uint32_t val = buf[i + 1];
++            if (op == 0x0589 && val) {
++                cxd90045_sugi_dump_words("SUGI-TEX", idx, (hwaddr)val, 64);
++            } else if (op == 0x0112 && val) {
++                cxd90045_sugi_dump_words("SUGI-DST", idx,
++                                         (hwaddr)((uint64_t)val << 4), 64);
++            } else if (op == 0x0116 && val) {
++                cxd90045_sugi_dump_words("SUGI-SRC", idx,
++                                         (hwaddr)((uint64_t)val << 4), 64);
++            }
++            i++;
++        }
++    }
++}
++
++/* --- software rasterizer for the observed 2D command lists --- */
++static bool cxd90045_sugi_exec_enabled(void)
++{
++    static int enabled = -1;
++    if (enabled < 0) {
++        enabled = getenv("A7M3_SUGI_EXEC") != NULL;
++    }
++    return enabled;
++}
++
++typedef struct {
++    uint32_t surf, tex, texw, texh, color;
++    uint32_t r47, r48;
++    unsigned draws;
++} SugiSoftState;
++static SugiSoftState sugi_soft;
++
++static bool cxd90045_sugi_pa_ok(hwaddr a, unsigned n)
++{
++    return (a + n <= 0x40000000ULL) ||
++           (a >= 0x80000000ULL && a + n <= 0x90000000ULL);
++}
++
++static void cxd90045_sugi_surface_dump(unsigned idx)
++{
++    const char *dir = getenv("A7M3_SURF_DIR");
++    char path[256];
++    FILE *f;
++    static unsigned char surf[640 * 480 * 2];
++    if (!dir) {
++        return;
++    }
++    if (!cxd90045_sugi_pa_ok(0x202e0200ULL, sizeof(surf))) {
++        return;
++    }
++    cpu_physical_memory_read(0x202e0200ULL, surf, sizeof(surf));
++    snprintf(path, sizeof(path), "%s/frame_%04u.raw", dir, idx);
++    f = fopen(path, "wb");
++    if (!f) {
++        return;
++    }
++    fwrite(surf, 1, sizeof(surf), f);
++    fclose(f);
++}
++
++static void cxd90045_sugi_soft_draw(unsigned idx)
++{
++    int vx0 = (int16_t)(sugi_soft.r47 & 0xffff);
++    int vy0 = (int16_t)(sugi_soft.r47 >> 16);
++    int vx1 = (int16_t)(sugi_soft.r48 & 0xffff);
++    int vy1 = (int16_t)(sugi_soft.r48 >> 16);
++    int x0, y0, x1, y1, ox0, oy0, ox1, oy1;
++    int tw = (int)sugi_soft.texw, th = (int)sugi_soft.texh;
++    int center = getenv("A7M3_SUGI_CENTER") != NULL;
++    uint32_t surf = sugi_soft.surf, tex = sugi_soft.tex;
++    static uint16_t srcrow[4096];
++    static unsigned char dstrow[2048];
++    int y;
++
++    if (sugi_soft.draws++ >= 512) {
++        return;
++    }
++    if (center) {
++        x0 = (vx0 + 640) >> 1;
++        x1 = (vx1 + 640) >> 1;
++        y0 = (vy0 + 480) >> 1;
++        y1 = (vy1 + 480) >> 1;
++    } else if (getenv("A7M3_SUGI_HALF")) {
++        x0 = vx0 >> 1;
++        y0 = vy0 >> 1;
++        x1 = vx1 >> 1;
++        y1 = vy1 >> 1;
++    } else {
++        x0 = vx0; y0 = vy0; x1 = vx1; y1 = vy1;
++    }
++    if (sugi_soft.draws <= 300) {
++        fprintf(stderr, "SUGI-SD[%u] surf=%08x tex=%08x %dx%d "
++                "r47=%08x r48=%08x col=%08x%s\n",
++                sugi_soft.draws, surf, tex, tw, th,
++                sugi_soft.r47, sugi_soft.r48, sugi_soft.color,
++                center ? " C" : "");
++    }
++    if (x1 <= x0) { int t = x0; x0 = x1; x1 = t; }
++    if (y1 <= y0) { int t = y0; y0 = y1; y1 = t; }
++    ox0 = x0; oy0 = y0; ox1 = x1; oy1 = y1;
++    if (x0 < 0) x0 = 0;
++    if (y0 < 0) y0 = 0;
++    if (x1 > 640) x1 = 640;
++    if (y1 > 480) y1 = 480;
++    if (x1 <= x0 || y1 <= y0) {
++        return;
++    }
++    if (tw <= 0 || th <= 0 || tw > 2048 || th > 2048) {
++        return;
++    }
++    if (!cxd90045_sugi_pa_ok(surf, 640 * 480 * 2)) {
++        return;
++    }
++    if (!cxd90045_sugi_pa_ok(tex, (hwaddr)tw * th * 2)) {
++        return;
++    }
++    for (y = y0; y < y1; y++) {
++        int v = center ? (y - oy0) : (int)((uint64_t)(y - oy0) * th / (oy1 - oy0));
++        int x;
++        hwaddr drow = surf + (hwaddr)y * 640 * 2;
++        if (center) {
++            if (v >= 0) v %= th;
++        } else if (v >= th) {
++            v = th - 1;
++        }
++        cpu_physical_memory_read(tex + (hwaddr)v * tw * 2, srcrow, tw * 2);
++        cpu_physical_memory_read(drow, dstrow, 640 * 2);
++        for (x = x0; x < x1; x++) {
++            int u = center ? (x - ox0) : (int)((uint64_t)(x - ox0) * tw / (ox1 - ox0));
++            uint16_t pix;
++            unsigned a;
++            if (center) {
++                if (u >= 0) u %= tw;
++            } else if (u >= tw) {
++                u = tw - 1;
++            }
++            pix = srcrow[u];
++            a = pix & 0xF;
++            if (a == 0) {
++                continue;
++            }
++            if (a < 0xF) {
++                uint16_t dp = (uint16_t)(dstrow[x * 2] |
++                                         (dstrow[x * 2 + 1] << 8));
++                unsigned sr = (pix >> 12) & 0xF, sg = (pix >> 8) & 0xF;
++                unsigned sb = (pix >> 4) & 0xF;
++                unsigned dr = (dp >> 12) & 0xF, dg = (dp >> 8) & 0xF;
++                unsigned db = (dp >> 4) & 0xF;
++                unsigned rr = (sr * a + dr * (15 - a) + 7) / 15;
++                unsigned rg = (sg * a + dg * (15 - a) + 7) / 15;
++                unsigned rb = (sb * a + db * (15 - a) + 7) / 15;
++                pix = (uint16_t)((rr << 12) | (rg << 8) | (rb << 4) | 0xF);
++            }
++            dstrow[x * 2] = pix & 0xff;
++            dstrow[x * 2 + 1] = pix >> 8;
++        }
++        cpu_physical_memory_write(drow, dstrow, 640 * 2);
++    }
++    cxd90045_sugi_surface_dump(sugi_soft.draws);
++}
++
++static void cxd90045_sugi_soft_exec(unsigned idx, uint32_t base)
++{
++    uint32_t buf[1024];
++    int i;
++    if (!cxd90045_sugi_exec_enabled()) {
++        return;
++    }
++    if (!cxd90045_sugi_addr_ok((hwaddr)base, sizeof(buf))) {
++        return;
++    }
++    cpu_physical_memory_read((hwaddr)base, buf, sizeof(buf));
++    for (i = 0; i + 1 < 1024; i++) {
++        uint32_t w = buf[i];
++        uint32_t op, val;
++        if ((w & 0xffff) != 0xf000) {
++            continue;
++        }
++        op = w >> 16;
++        val = buf[i + 1];
++        switch (op) {
++        case 0x0112:
++            sugi_soft.surf = val << 4;
++            break;
++        case 0x0589:
++            sugi_soft.tex = val << 3;
++            break;
++        case 0x0586:
++        case 0x0587:
++            sugi_soft.texw = val >> 16;
++            sugi_soft.texh = val & 0xffff;
++            break;
++        case 0x0047:
++            sugi_soft.r47 = val;
++            break;
++        case 0x0048:
++            sugi_soft.r48 = val;
++            break;
++        case 0x0105:
++            sugi_soft.color = val;
++            break;
++        case 0x0202:
++            cxd90045_sugi_soft_draw(idx);
++            break;
++        default:
++            break;
++        }
++        i++;
++    }
++}
++
++static void cxd90045_sugi_capture_cmd(uint32_t word_addr)
++{
++    unsigned int idx;
++    if (!cxd90045_sugi_cmd_trace() || cxd90045_sugi_cmd_count >= 8192) {
++        return;
++    }
++    idx = cxd90045_sugi_cmd_count++;
++    cxd90045_sugi_dump_words("SUGI-CMDA", idx, (hwaddr)word_addr, 1024);
++    cxd90045_sugi_dump_words("SUGI-CMDB", idx,
++                             (hwaddr)((uint64_t)word_addr << 2), 16);
++    cxd90045_sugi_scan_cmd(idx, word_addr);
++    cxd90045_sugi_scan_cmd(idx, (uint32_t)((uint64_t)word_addr << 2));
++    cxd90045_sugi_scan_regs(idx, word_addr);
++    cxd90045_sugi_soft_exec(idx, word_addr);
++}
++
++
++static void cxd90045_sugi_dump_mem(const char *tag, unsigned int idx,
++                                   uint32_t word_addr, uint32_t bytes)
++{
++    uint32_t buf[64];
++    hwaddr addr = (hwaddr)((uint64_t)word_addr << 2);
++    unsigned int n = bytes > 192 ? 192 : bytes;
++    unsigned int i;
++    if (!n) {
++        return;
++    }
++    if (!((addr < 0x40000000ULL) ||
++          (addr >= 0x80000000ULL && addr + n <= 0x90000000ULL))) {
++        return;
++    }
++    cpu_physical_memory_read(addr, buf, (n + 3) & ~3u);
++    fprintf(stderr, "SUGI-2D%s[%u] addr=%08x n=%u:", tag, idx,
++            (unsigned)addr, n);
++    for (i = 0; i < (n + 3) / 4; i++) {
++        fprintf(stderr, " %08x", buf[i]);
++    }
++    fprintf(stderr, "\n");
++}
++
++static void cxd90045_sugi_capture_2d(CXD90045SugiState *s)
++{
++    uint32_t c00 = s->regs[0xc00 >> 2];
++    uint32_t c04 = s->regs[0xc04 >> 2];
++    uint32_t c08 = s->regs[0xc08 >> 2];
++    uint32_t c0c = s->regs[0xc0c >> 2];
++    uint32_t c10 = s->regs[0xc10 >> 2];
++    uint32_t c20 = s->regs[0xc20 >> 2];
++    uint32_t c24 = s->regs[0xc24 >> 2];
++    uint32_t c28 = s->regs[0xc28 >> 2];
++    if (!cxd90045_sugi_cmd_trace() || cxd90045_sugi_2d_count >= 8192) {
++        return;
++    }
++    fprintf(stderr, "SUGI-2D[%u] c00=%08x c04=%08x c08=%08x c0c=%08x "
++            "c10=%08x c20=%08x c24=%08x c28=%08x\n",
++            cxd90045_sugi_2d_count++, c00, c04, c08, c0c, c10, c20, c24,
++            c28);
++    {
++        unsigned int idx = cxd90045_sugi_2d_count - 1;
++        if (c10 == 8) {
++            cxd90045_sugi_dump_mem("S", idx, c00, c20);
++            cxd90045_sugi_dump_mem("D", idx, c04, c20);
++        } else {
++            cxd90045_sugi_dump_mem("S", idx, c00, 64);
++            cxd90045_sugi_dump_mem("D", idx, c04, 64);
++        }
++    }
++}
++
+ static void cxd90045_sugi_write(void *opaque, hwaddr offset, uint64_t value,
+                                 unsigned size)
+ {
+@@ -1256,6 +1614,9 @@
+         return;
+     }
+     s->regs[idx] = (uint32_t)value;
++    if (offset == 0x1804) {
++        cxd90045_sugi_last_cmd = (uint32_t)value;
++    }
+ 
+     if ((offset == 0x00c0 && (value & 0x20000000u)) ||
+         (offset == 0x1800 && (value & 0x4u)) ||
+@@ -1266,6 +1627,34 @@
+         s->status[block] = 0xc0000001;
+         s->pending[block] = 1;
+         s->irq_status |= s->status[block];
++        if (offset == 0x1800 && (value & 0x4u)) {
++            cxd90045_sugi_capture_cmd(cxd90045_sugi_last_cmd);
++        }
++        if (offset == 0x0c18 && value == 1) {
++            if (cxd90045_sugi_exec_enabled()) {
++                uint32_t c10 = s->regs[0xc10 >> 2];
++                uint32_t c20 = s->regs[0xc20 >> 2];
++                if (c10 == 8 && c20 > 0 && c20 <= 0x100000) {
++                    hwaddr src = (hwaddr)((uint64_t)s->regs[0xc00 >> 2] << 2);
++                    hwaddr dst = (hwaddr)((uint64_t)s->regs[0xc04 >> 2] << 2);
++                    if (cxd90045_sugi_pa_ok(src, c20) &&
++                        cxd90045_sugi_pa_ok(dst, c20)) {
++                        static unsigned char copybuf[0x10000];
++                        uint32_t done = 0;
++                        while (done < c20) {
++                            uint32_t n = c20 - done;
++                            if (n > sizeof(copybuf)) {
++                                n = sizeof(copybuf);
++                            }
++                            cpu_physical_memory_read(src + done, copybuf, n);
++                            cpu_physical_memory_write(dst + done, copybuf, n);
++                            done += n;
++                        }
++                    }
++                }
++            }
++            cxd90045_sugi_capture_2d(s);
++        }
+         qemu_irq_raise(s->irq);
+     } else if (cxd90045_sugi_ack_off(low)) {
+         s->pending[block] = 0;

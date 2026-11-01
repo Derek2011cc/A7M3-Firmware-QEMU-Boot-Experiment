@@ -1,0 +1,6 @@
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so 8:00000001; echo FM_A
+sleep 5
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so 8:01000000; echo FM_B
+sleep 5
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so 4:00000001; echo FM_C
+sleep 5

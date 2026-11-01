@@ -1,0 +1,27 @@
+Source: QEMU gdbstub RSP client output (uiprobe19 run).
+
+The client connected, sent 'c', then armed Z2 on the command-buffer VA page after
+seeing HKICK. First write hit:
+
+  HKICK p=0b527cec va=0cdca3c0 pa=205493c0
+  int stop T02thread:01;
+  Z2 0cdca3d0 len 1000 -> OK
+  HKICK p=0b527cec va=0cdca3e0 pa=205493e0
+  int stop T02thread:01;
+  Z2 0cdca3f0 len 1000 -> OK
+  HKICK p=0b527cec va=0cdca400 pa=20549400
+  stop T05thread:01;watch:0cdca3f0;
+  PC=04616350 r0=0cdcaa70 r1=136b6838 r2=ffffffe8 r3=ffffd8f1 r12=00000018 lr=02053bb0
+  code 048080e404e080e4e001bde8822fb0e1
+  src 2c260900004e5e07980d09001826090050686b136b13b10658686b133308b106
+  dst 0000000000000000000000000000000000000000000000000000000000000000
+
+Interpretation:
+  PC 0x04616350 lies in /lib/libc-2.11.2.so (mapping 0x045b6000-0x046a3000, offset 0x60350).
+  The bytes are an ARM word-copy/clear loop (e4808004 = str r8,[r0],#4).
+  The write is to 0x0cdcaa70, inside the watched page, not to the command words themselves.
+  This is the driver clearing/copying a staging area; the command builder runs after it.
+  The watcher removed the Z2 after the first hit, so the builder was missed.
+
+A second earlier run (uiprobe18) stopped at PC 0x045bb2f0 r0=0c82d3c0 r1=000676a0 r2=000000c8
+with lr=01000000; that is also a libc copy, not the builder.

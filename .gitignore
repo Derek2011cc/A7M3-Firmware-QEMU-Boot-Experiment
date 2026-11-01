@@ -1,0 +1,26 @@
+# Sony firmware data, dumps and derived binaries: never commit these.
+service-dump/
+MANIFEST.md
+*.bin
+*.img
+*.ko
+vmlinux*
+initrd*
+
+# Generated QEMU / image artifacts
+qemu-emmc-*
+build-arm/
+output/
+runtime/
+evidence/
+
+# The UI-rendering result keeps small text evidence in the repository.
+!ui-rendering/evidence/
+!ui-rendering/evidence/**
+
+# Logs and scratch
+*.log
+*.out
+*.tmp
+__pycache__/
+*.pyc

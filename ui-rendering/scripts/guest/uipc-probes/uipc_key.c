@@ -1,0 +1,44 @@
+/* A7M3 key injection: UIPC qid 0x007a0020, 16-byte event
+ * {u32 code, u32 0, u32 status, u32 0}, source qid 0x00410025.
+ * MENU=0x1ab per the Sony key table verified on A7C2.
+ * Repeat for a few seconds so the event lands after the app registers. */
+typedef unsigned int u32;
+typedef int s32;
+extern s32 osal_valloc_msg_wait(u32 qid, void **msg, u32 size, u32 flags);
+extern s32 osal_snd_msg(u32 qid, void *msg);
+
+struct timespec { long tv_sec; long tv_nsec; };
+static long sc_nanosleep(struct timespec *ts)
+{
+    register long r0 __asm__("r0") = 0;
+    register long r1 __asm__("r1") = (long)ts;
+    register long r7 __asm__("r7") = 162;
+    __asm__ volatile("svc #0" : "+r"(r0) : "r"(r1), "r"(r7) : "memory");
+    return r0;
+}
+
+static void send_key(u32 code, u32 status)
+{
+    void *m = 0;
+    if (osal_valloc_msg_wait(0x007a0020u, &m, 0x10, 1) == 0 && m) {
+        u32 *p = (u32 *)m;
+        p[-1] = 0x00410025u;
+        p[0] = code;
+        p[1] = 0;
+        p[2] = status;
+        p[3] = 0;
+        osal_snd_msg(0x007a0020u, m);
+    }
+}
+
+void __attribute__((constructor)) inject_menu(void)
+{
+    struct timespec ts;
+    int i;
+    for (i = 0; i < 8; i++) {
+        send_key(0x1abu, 1);
+        ts.tv_sec = 0; ts.tv_nsec = 120000000L; sc_nanosleep(&ts);
+        send_key(0x1abu, 0);
+        ts.tv_sec = 0; ts.tv_nsec = 400000000L; sc_nanosleep(&ts);
+    }
+}

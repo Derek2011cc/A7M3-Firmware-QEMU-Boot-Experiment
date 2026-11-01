@@ -1,0 +1,134 @@
+--- bionz-patched.c	2026-11-01 09:24:26.307662000 +0800
++++ bionz-2026-11-01.c	2026-11-01 10:56:11.480009900 +0800
+@@ -1350,6 +1350,7 @@
+ typedef struct {
+     uint32_t surf, tex, texw, texh, color;
+     uint32_t r47, r48;
++    uint32_t areaw, areah;
+     unsigned draws;
+ } SugiSoftState;
+ static SugiSoftState sugi_soft;
+@@ -1390,7 +1391,12 @@
+     int vy1 = (int16_t)(sugi_soft.r48 >> 16);
+     int x0, y0, x1, y1, ox0, oy0, ox1, oy1;
+     int tw = (int)sugi_soft.texw, th = (int)sugi_soft.texh;
+-    int center = getenv("A7M3_SUGI_CENTER") != NULL;
++    int center = getenv("A7M3_SUGI_CENTER") != NULL ||
++                 getenv("A7M3_SUGI_CENTERSCALE") != NULL;
++    int cscale = getenv("A7M3_SUGI_CENTERSCALE") != NULL;
++    int hybrid = getenv("A7M3_SUGI_HYBRID") != NULL;
++    int cw = sugi_soft.areaw ? (int)sugi_soft.areaw : 640;
++    int ch = sugi_soft.areah ? (int)sugi_soft.areah : 480;
+     uint32_t surf = sugi_soft.surf, tex = sugi_soft.tex;
+     static uint16_t srcrow[4096];
+     static unsigned char dstrow[2048];
+@@ -1399,11 +1405,30 @@
+     if (sugi_soft.draws++ >= 512) {
+         return;
+     }
++    {
++        const char *skip = getenv("A7M3_SUGI_SKIP_TEX");
++        if (skip && *skip) {
++            char sbuf[128];
++            char *tok;
++            size_t sl = strlen(skip);
++            if (sl >= sizeof(sbuf)) {
++                sl = sizeof(sbuf) - 1;
++            }
++            memcpy(sbuf, skip, sl);
++            sbuf[sl] = 0;
++            for (tok = strtok(sbuf, ","); tok; tok = strtok(NULL, ",")) {
++                unsigned long sv = strtoul(tok, NULL, 16);
++                if ((uint32_t)sv == tex) {
++                    return;
++                }
++            }
++        }
++    }
+     if (center) {
+-        x0 = (vx0 + 640) >> 1;
+-        x1 = (vx1 + 640) >> 1;
+-        y0 = (vy0 + 480) >> 1;
+-        y1 = (vy1 + 480) >> 1;
++        x0 = (vx0 + cw) >> 1;
++        x1 = (vx1 + cw) >> 1;
++        y0 = (vy0 + ch) >> 1;
++        y1 = (vy1 + ch) >> 1;
+     } else if (getenv("A7M3_SUGI_HALF")) {
+         x0 = vx0 >> 1;
+         y0 = vy0 >> 1;
+@@ -1412,6 +1437,26 @@
+     } else {
+         x0 = vx0; y0 = vy0; x1 = vx1; y1 = vy1;
+     }
++    {
++        const char *tdir = getenv("A7M3_TEX_DIR");
++        static unsigned tex_dumps;
++        if (tdir && tex_dumps < 256 && tw > 0 && th > 0 &&
++            tw <= 2048 && th <= 2048 &&
++            cxd90045_sugi_pa_ok(tex, (hwaddr)tw * th * 2)) {
++            char tpath[256];
++            unsigned char *tbuf = g_malloc((size_t)tw * th * 2);
++            snprintf(tpath, sizeof(tpath), "%s/tex_%04u_%dx%d.raw",
++                     tdir, sugi_soft.draws, tw, th);
++            cpu_physical_memory_read(tex, tbuf, (size_t)tw * th * 2);
++            FILE *tf = fopen(tpath, "wb");
++            if (tf) {
++                fwrite(tbuf, 1, (size_t)tw * th * 2, tf);
++                fclose(tf);
++                tex_dumps++;
++            }
++            g_free(tbuf);
++        }
++    }
+     if (sugi_soft.draws <= 300) {
+         fprintf(stderr, "SUGI-SD[%u] surf=%08x tex=%08x %dx%d "
+                 "r47=%08x r48=%08x col=%08x%s\n",
+@@ -1439,24 +1484,28 @@
+         return;
+     }
+     for (y = y0; y < y1; y++) {
+-        int v = center ? (y - oy0) : (int)((uint64_t)(y - oy0) * th / (oy1 - oy0));
++        int v;
+         int x;
+         hwaddr drow = surf + (hwaddr)y * 640 * 2;
+-        if (center) {
++        if (center && (!cscale || (hybrid && (oy1 - oy0) > th + (th >> 1)))) {
++            v = y - oy0;
+             if (v >= 0) v %= th;
+-        } else if (v >= th) {
+-            v = th - 1;
++        } else {
++            v = (int)((uint64_t)(y - oy0) * th / (oy1 - oy0));
++            if (v >= th) v = th - 1;
+         }
+         cpu_physical_memory_read(tex + (hwaddr)v * tw * 2, srcrow, tw * 2);
+         cpu_physical_memory_read(drow, dstrow, 640 * 2);
+         for (x = x0; x < x1; x++) {
+-            int u = center ? (x - ox0) : (int)((uint64_t)(x - ox0) * tw / (ox1 - ox0));
++            int u;
+             uint16_t pix;
+             unsigned a;
+-            if (center) {
++            if (center && (!cscale || (hybrid && (ox1 - ox0) > tw + (tw >> 1)))) {
++                u = x - ox0;
+                 if (u >= 0) u %= tw;
+-            } else if (u >= tw) {
+-                u = tw - 1;
++            } else {
++                u = (int)((uint64_t)(x - ox0) * tw / (ox1 - ox0));
++                if (u >= tw) u = tw - 1;
+             }
+             pix = srcrow[u];
+             a = pix & 0xF;
+@@ -1514,6 +1563,10 @@
+             sugi_soft.texw = val >> 16;
+             sugi_soft.texh = val & 0xffff;
+             break;
++        case 0x0049:
++            sugi_soft.areaw = val & 0xffff;
++            sugi_soft.areah = val >> 16;
++            break;
+         case 0x0047:
+             sugi_soft.r47 = val;
+             break;

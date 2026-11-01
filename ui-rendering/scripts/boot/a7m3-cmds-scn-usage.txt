@@ -1,0 +1,5 @@
+/usr/bin/scenario.elf -h; echo SCN_H1
+/usr/bin/scenario.elf --help; echo SCN_H2
+/usr/bin/scenario.elf help; echo SCN_H3
+/usr/bin/scenario.elf; echo SCN_H4
+sleep 5

@@ -1,0 +1,5 @@
+# Host-side Python dependencies for the offline analysis scripts.
+# Install with: python3 -m pip install -r requirements.txt
+Pillow>=9
+numpy>=1.21
+capstone>=5

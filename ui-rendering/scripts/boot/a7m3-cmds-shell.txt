@@ -1,0 +1,5 @@
+sleep 2
+busybox mknod /dev/ttyAM1 c 204 65 2>/dev/null
+busybox setsid sh -c 'exec sh -i </dev/ttyAM1 >/dev/ttyAM1 2>&1' &
+echo SHELL_ON_TTYAM1
+sleep 600

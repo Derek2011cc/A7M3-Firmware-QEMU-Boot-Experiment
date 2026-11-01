@@ -1,0 +1,6 @@
+# partitions with empty FAT root or all-zero content
+nflasha6: FAT root directory empty
+nflasha12: FAT root directory empty
+nflasha17: FAT root directory empty
+nflasha16: all 146,800,640 bytes zero
+nflashaB1: all 4,194,304 bytes zero

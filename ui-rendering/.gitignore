@@ -1,0 +1,9 @@
+# Keep the small text evidence for this result even though the parent
+# a7m3/.gitignore excludes evidence/ for large boot dumps.
+!evidence/
+!evidence/**
+
+# Local raw dumps / frames produced by the harness are not source.
+*.raw
+frames/
+build/

@@ -1,0 +1,80 @@
+# nflasha4 (CMMeX) first 256 bytes
+000000 43 4d 4d 65 58 00 58 00 82 00 00 00 01 01 03 ff  >CMMeX.X.........<
+000010 a0 00 00 00 00 01 01 ff 81 00 00 00 00 01 03 ff  >................<
+000020 62 00 00 00 00 06 07 ff 63 00 00 00 00 06 07 ff  >b.......c.......<
+000030 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  >................<
+*
+000090 ff ff ff ff ff ff ff ff ff ff ff ff 34 00 00 03  >............4...<
+0000a0 01 00 00 03 ff ff ff ff 39 00 00 03 ff ff ff ff  >........9.......<
+0000b0 49 00 00 03 ff ff ff ff 4a 00 00 03 ff ff ff ff  >I.......J.......<
+0000c0 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  >................<
+*
+000100
+
+# nflasha5 (WBI1) first 256 bytes
+000000 57 42 49 31 7e 02 00 00 09 00 00 00 1c 4e 12 00  >WBI1~........N..<
+000010 24 02 06 20 00 02 00 00 00 42 df 01 00 00 00 00  >$.. .....B......<
+000020 00 00 00 00 0f 0f 0f 0f 00 10 ba 07 00 00 00 00  >................<
+000030 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  >................<
+*
+000100
+
+# nflashaB0 (EXBL) first 256 bytes
+000000 45 58 42 4c 00 00 00 00 00 00 00 00 00 00 00 00  >EXBL............<
+000010 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  >................<
+*
+000040 38 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00  >8...............<
+000050 00 70 04 fe 00 70 04 fe 00 00 00 00 00 00 00 00  >.p...p..........<
+000060 00 00 00 00 01 00 00 00 00 00 00 00 00 00 04 fe  >................<
+000070 00 70 04 fe 00 78 02 00 00 70 04 fe 00 78 02 00  >.p...x...p...x..<
+000080 04 00 00 00 14 00 00 00 00 00 00 00 00 00 00 00  >................<
+000090 00 08 04 fe 00 08 04 fe 00 00 00 00 00 00 00 00  >................<
+0000a0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  >................<
+*
+0000c0 18 00 00 00 20 00 00 00 00 00 00 00 00 00 00 00  >.... ...........<
+0000d0 00 30 04 fe 00 00 00 00 00 00 00 00 00 00 00 00  >.0..............<
+0000e0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  >................<
+*
+000100
+
+# nflashaB0 strings (first 40)
+f pGe pGd pGc pGb pGa pG00
+;FjF1F(F
+08pGa(
+data2str ui_digits lim err in hex !!!. exitting...
+Failed to d2c in data2str!!!. exitting...
+data2str ui_digits lim err in dec !!!. exitting...
+FATAL ERROR - conv2str 10!!!
+FATAL ERROR - conv2str 16!!!
+(D``T"
+`bIFPF
+"FIFChPF
+&`fa&a
+>DGU_FAIL<
+>DGU_PASS<
+2h!F(F
+2h!F(F
+2h!F(F
+ret exec
+ret skip
+PrmErr
+nest Err
+call exec
+call skip
+TstVect
+%s    %d(%d/%d)
+%s        %d
+%s        %x
+ErrData
+%s    %x
+ExpData
+cmd ret OK(ECC Correctable)
+fail_stop_mode
+print_cont
+(C)2016 Sony Corp. DIG/PD/SD-2
+V85.00.03
+DGU5 for 
+%s%s %s %s
+verify
+H;F2F)F
+CF2F)F F

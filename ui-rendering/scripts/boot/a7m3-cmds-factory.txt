@@ -1,0 +1,4 @@
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so; echo SCN_FM
+sleep 8
+/usr/bin/scenario.elf /scenario/MPR_SCN_GET_TOTAL_LOG.so; echo SCN_LOG
+sleep 8

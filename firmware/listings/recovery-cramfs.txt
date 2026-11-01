@@ -1,0 +1,564 @@
+# CramFS listing of nflasha1/BOOT/INITRD.IMG (7z l -ba)
+# 562 files; version.txt = 100.101.005; ramdsk = tmp_updater
+
+                    D....                            bin
+                    D....                            dev
+                    D....                            etc
+                    D....                            kmod
+                    D....                            lib
+                    D....                            media
+                    D....                            mnt
+                    D....                            mnt1
+                    D....                            mnt2
+                    D....                            mnt3
+                    D....                            mnt4
+                    D....                            mnt5
+                    D....                            proc
+                    .....           11           19  ramdsk
+                    D....                            root
+                    D....                            sbin
+                    D....                            setting
+                    D....                            sys
+                    D....                            system
+                    D....                            tmp
+                    D....                            tmp_updater
+                    D....                            usr
+                    D....                            var
+                    .....           12           20  version.txt
+                    .....            7           15  bin/ash
+                    .....       233448       161997  bin/busybox
+                    .....            7           15  bin/cat
+                    .....            7           15  bin/chgrp
+                    .....            7           15  bin/chmod
+                    .....            7           15  bin/chown
+                    .....            7           15  bin/cp
+                    .....            7           15  bin/cpio
+                    .....            7           15  bin/cut
+                    .....            7           15  bin/date
+                    .....            7           15  bin/dd
+                    .....            7           15  bin/dmesg
+                    .....            7           15  bin/echo
+                    .....            7           15  bin/egrep
+                    .....            7           15  bin/false
+                    .....            7           15  bin/fgrep
+                    .....            7           15  bin/grep
+                    .....            7           15  bin/gunzip
+                    .....            7           15  bin/gzip
+                    .....            7           15  bin/kill
+                    .....            7           15  bin/ln
+                    .....            7           15  bin/login
+                    .....            7           15  bin/ls
+                    .....            7           15  bin/md5sum
+                    .....            7           15  bin/mkdir
+                    .....            7           15  bin/mkfifo
+                    .....            7           15  bin/mknod
+                    .....            7           15  bin/mktemp
+                    .....            7           15  bin/mount
+                    .....            7           15  bin/mv
+                    .....            7           15  bin/pidof
+                    .....            7           15  bin/ping
+                    .....            7           15  bin/ping6
+                    .....        59500        31932  bin/ps
+                    .....            7           15  bin/pwd
+                    .....            7           15  bin/rm
+                    .....            7           15  bin/rmdir
+                    .....            7           15  bin/sed
+                    .....            7           15  bin/sh
+                    .....            7           15  bin/sleep
+                    .....            7           15  bin/sync
+                    .....            7           15  bin/tar
+                    .....            7           15  bin/tee
+                    .....            7           15  bin/touch
+                    .....            7           15  bin/true
+                    .....            7           15  bin/umount
+                    .....            7           15  bin/uname
+                    .....            7           15  bin/usleep
+                    .....            7           15  bin/wc
+                    .....            7           15  bin/xargs
+                    .....            7           15  bin/zcat
+                    .....           16           24  dev/MAKEDEV
+                    .....        64464               dev/backup
+                    .....         2751               dev/bootimg
+                    .....        64506               dev/boss-t1
+                    .....        64507               dev/boss-t2
+                    .....        64508               dev/boss-t3
+                    .....        63516               dev/ca
+                    .....        63515               dev/cec
+                    .....        65024               dev/compswap
+                    .....         1281               dev/console
+                    .....           11           19  dev/core
+                    .....         2750               dev/crash
+                    .....        64465               dev/dma330
+                    .....        64462               dev/dmac
+                    .....        63517               dev/dmpgles2
+                    .....        64640               dev/dnflasha
+                    .....        64641               dev/dnflasha1
+                    .....        64650               dev/dnflasha10
+                    .....        64651               dev/dnflasha11
+                    .....        64652               dev/dnflasha12
+                    .....        64653               dev/dnflasha13
+                    .....        64654               dev/dnflasha14
+                    .....        64655               dev/dnflasha15
+                    .....        64656               dev/dnflasha16
+                    .....        64657               dev/dnflasha17
+                    .....        64658               dev/dnflasha18
+                    .....        64659               dev/dnflasha19
+                    .....        64642               dev/dnflasha2
+                    .....        64660               dev/dnflasha20
+                    .....        64661               dev/dnflasha21
+                    .....        64662               dev/dnflasha22
+                    .....        64663               dev/dnflasha23
+                    .....        64664               dev/dnflasha24
+                    .....        64665               dev/dnflasha25
+                    .....        64666               dev/dnflasha26
+                    .....        64667               dev/dnflasha27
+                    .....        64668               dev/dnflasha28
+                    .....        64669               dev/dnflasha29
+                    .....        64643               dev/dnflasha3
+                    .....        64670               dev/dnflasha30
+                    .....        64671               dev/dnflasha31
+                    .....        64644               dev/dnflasha4
+                    .....        64645               dev/dnflasha5
+                    .....        64646               dev/dnflasha6
+                    .....        64647               dev/dnflasha7
+                    .....        64648               dev/dnflasha8
+                    .....        64649               dev/dnflasha9
+                    .....        64466               dev/emif
+                    .....         7424               dev/fb0
+                    .....         7425               dev/fb1
+                    .....           13           21  dev/fd
+                    .....          263               dev/full
+                    .....         2789               dev/fuse
+                    .....        61440               dev/gpio
+                    .....        63513               dev/hdmi
+                    .....        63514               dev/hdmi_external_tx
+                    .....        63518               dev/hdmi_input
+                    D....                            dev/input
+                    .....        64469               dev/ioexp
+                    D....                            dev/jet
+                    .....          258               dev/kmem
+                    .....        64461               dev/ldec
+                    .....         1792               dev/loop0
+                    .....         1793               dev/loop1
+                    .....         1794               dev/loop2
+                    .....         1795               dev/loop3
+                    .....         1796               dev/loop4
+                    .....         1797               dev/loop5
+                    .....         1798               dev/loop6
+                    .....         1799               dev/loop7
+                    .....        63745               dev/mcmn
+                    .....          257               dev/mem
+                    .....        64010               dev/mmca
+                    .....        64000               dev/mmca-char
+                    .....        64011               dev/mmca1
+                    .....        64012               dev/mmca2
+                    .....        64013               dev/mmca3
+                    .....        64014               dev/mmca4
+                    .....        64015               dev/mmcaa
+                    .....        64016               dev/mmcaa1
+                    .....        64017               dev/mmcab
+                    .....        64018               dev/mmcab1
+                    .....        64019               dev/mmcac
+                    .....        64020               dev/mmcac1
+                    .....        64021               dev/mmcad
+                    .....        64022               dev/mmcad1
+                    .....        64030               dev/mmcb
+                    .....        64001               dev/mmcb-char
+                    .....        64031               dev/mmcb1
+                    .....        64032               dev/mmcb2
+                    .....        64033               dev/mmcb3
+                    .....        64034               dev/mmcb4
+                    .....        64035               dev/mmcba
+                    .....        64036               dev/mmcba1
+                    .....        64037               dev/mmcbb
+                    .....        64038               dev/mmcbb1
+                    .....        64039               dev/mmcbc
+                    .....        64040               dev/mmcbc1
+                    .....        64041               dev/mmcbd
+                    .....        64042               dev/mmcbd1
+                    .....        64050               dev/mmcc
+                    .....        64002               dev/mmcc-char
+                    .....        64051               dev/mmcc1
+                    .....        64052               dev/mmcc2
+                    .....        64053               dev/mmcc3
+                    .....        64054               dev/mmcc4
+                    .....        64055               dev/mmcca
+                    .....        64056               dev/mmcca1
+                    .....        64057               dev/mmccb
+                    .....        64058               dev/mmccb1
+                    .....        64059               dev/mmccc
+                    .....        64060               dev/mmccc1
+                    .....        64061               dev/mmccd
+                    .....        64062               dev/mmccd1
+                    .....        63744               dev/ms
+                    .....        63744               dev/ms-char
+                    .....        63745               dev/ms1
+                    .....        63746               dev/ms2
+                    .....        63747               dev/ms3
+                    .....        63748               dev/ms4
+                    .....        63749               dev/ms5
+                    .....        63750               dev/ms6
+                    .....        63751               dev/ms7
+                    .....        63752               dev/ms8
+                    .....        63753               dev/ms9
+                    D....                            dev/net
+                    .....        64512               dev/nflasha
+                    .....        64513               dev/nflasha1
+                    .....        64522               dev/nflasha10
+                    .....        64523               dev/nflasha11
+                    .....        64524               dev/nflasha12
+                    .....        64525               dev/nflasha13
+                    .....        64526               dev/nflasha14
+                    .....        64527               dev/nflasha15
+                    .....        64528               dev/nflasha16
+                    .....        64529               dev/nflasha17
+                    .....        64530               dev/nflasha18
+                    .....        64531               dev/nflasha19
+                    .....        64514               dev/nflasha2
+                    .....        64532               dev/nflasha20
+                    .....        64533               dev/nflasha21
+                    .....        64534               dev/nflasha22
+                    .....        64535               dev/nflasha23
+                    .....        64536               dev/nflasha24
+                    .....        64537               dev/nflasha25
+                    .....        64538               dev/nflasha26
+                    .....        64539               dev/nflasha27
+                    .....        64540               dev/nflasha28
+                    .....        64541               dev/nflasha29
+                    .....        64515               dev/nflasha3
+                    .....        64542               dev/nflasha30
+                    .....        64543               dev/nflasha31
+                    .....        64516               dev/nflasha4
+                    .....        64517               dev/nflasha5
+                    .....        64518               dev/nflasha6
+                    .....        64519               dev/nflasha7
+                    .....        64520               dev/nflasha8
+                    .....        64521               dev/nflasha9
+                    .....        64638               dev/nflashaB0
+                    .....        64639               dev/nflashaB1
+                    .....          259               dev/null
+                    .....          260               dev/port
+                    .....         1282               dev/ptmx
+                    D....                            dev/pts
+                    .....            4           12  dev/ram
+                    .....          256               dev/ram0
+                    .....          257               dev/ram1
+                    .....          266               dev/ram10
+                    .....          267               dev/ram11
+                    .....          268               dev/ram12
+                    .....          269               dev/ram13
+                    .....          270               dev/ram14
+                    .....          271               dev/ram15
+                    .....          272               dev/ram16
+                    .....          258               dev/ram2
+                    .....          259               dev/ram3
+                    .....          260               dev/ram4
+                    .....          261               dev/ram5
+                    .....          262               dev/ram6
+                    .....          263               dev/ram7
+                    .....          264               dev/ram8
+                    .....          265               dev/ram9
+                    .....          264               dev/random
+                    .....         2782               dev/rmon
+                    .....         2695               dev/rtc
+                    .....        63746               dev/sata
+                    .....        63747               dev/sataa
+                    .....        63748               dev/satab
+                    .....        63749               dev/satac
+                    .....        63750               dev/satad
+                    .....            4           12  dev/satassd
+                    .....            4           12  dev/satauhs
+                    .....            5           13  dev/satauhsa
+                    .....            5           13  dev/satauhsb
+                    .....         2048               dev/sda
+                    .....         2049               dev/sda1
+                    .....         2050               dev/sda2
+                    .....         2051               dev/sda3
+                    .....         2052               dev/sda4
+                    .....         2064               dev/sdb
+                    .....         2065               dev/sdb1
+                    .....         2080               dev/sdc
+                    .....         2081               dev/sdc1
+                    .....         2096               dev/sdd
+                    .....         2097               dev/sdd1
+                    .....        64456               dev/sio0
+                    .....        64457               dev/sio1
+                    .....        64458               dev/sio2
+                    .....        64459               dev/sio3
+                    .....        64460               dev/sio4
+                    .....         2816               dev/sr0
+                    .....         2817               dev/sr1
+                    .....            4           12  dev/stderr
+                    .....            4           12  dev/stdin
+                    .....            4           12  dev/stdout
+                    .....        63751               dev/stream
+                    .....        63752               dev/stream2
+                    .....        64467               dev/sxs_blk0
+                    .....        64468               dev/sxs_blk1
+                    .....         1280               dev/tty
+                    .....         1024               dev/tty0
+                    .....         1025               dev/tty1
+                    .....         1034               dev/tty10
+                    .....         1035               dev/tty11
+                    .....         1036               dev/tty12
+                    .....         1037               dev/tty13
+                    .....         1038               dev/tty14
+                    .....         1039               dev/tty15
+                    .....         1040               dev/tty16
+                    .....         1041               dev/tty17
+                    .....         1042               dev/tty18
+                    .....         1043               dev/tty19
+                    .....         1026               dev/tty2
+                    .....         1027               dev/tty3
+                    .....         1028               dev/tty4
+                    .....         1029               dev/tty5
+                    .....         1030               dev/tty6
+                    .....         1031               dev/tty7
+                    .....         1032               dev/tty8
+                    .....         1033               dev/tty9
+                    .....        52240               dev/ttyAM0
+                    .....        52241               dev/ttyAM1
+                    .....        52242               dev/ttyAM2
+                    .....        52243               dev/ttyAM3
+                    .....         1088               dev/ttyS0
+                    .....         1089               dev/ttyS1
+                    .....         1090               dev/ttyS2
+                    .....         1091               dev/ttyS3
+                    .....            6           14  dev/ttycons
+                    .....         2783               dev/uinput
+                    .....        64768               dev/uio0
+                    .....        64463               dev/uipc
+                    .....          265               dev/urandom
+                    D....                            dev/usb
+                    .....            4           12  dev/vcs
+                    .....         1792               dev/vcs0
+                    .....         1793               dev/vcs1
+                    .....         1802               dev/vcs10
+                    .....         1803               dev/vcs11
+                    .....         1804               dev/vcs12
+                    .....         1805               dev/vcs13
+                    .....         1806               dev/vcs14
+                    .....         1807               dev/vcs15
+                    .....         1808               dev/vcs16
+                    .....         1809               dev/vcs17
+                    .....         1810               dev/vcs18
+                    .....         1811               dev/vcs19
+                    .....         1794               dev/vcs2
+                    .....         1795               dev/vcs3
+                    .....         1796               dev/vcs4
+                    .....         1797               dev/vcs5
+                    .....         1798               dev/vcs6
+                    .....         1799               dev/vcs7
+                    .....         1800               dev/vcs8
+                    .....         1801               dev/vcs9
+                    .....            5           13  dev/vcsa
+                    .....         1920               dev/vcsa0
+                    .....         1921               dev/vcsa1
+                    .....         1930               dev/vcsa10
+                    .....         1931               dev/vcsa11
+                    .....         1932               dev/vcsa12
+                    .....         1933               dev/vcsa13
+                    .....         1934               dev/vcsa14
+                    .....         1935               dev/vcsa15
+                    .....         1936               dev/vcsa16
+                    .....         1937               dev/vcsa17
+                    .....         1938               dev/vcsa18
+                    .....         1939               dev/vcsa19
+                    .....         1922               dev/vcsa2
+                    .....         1923               dev/vcsa3
+                    .....         1924               dev/vcsa4
+                    .....         1925               dev/vcsa5
+                    .....         1926               dev/vcsa6
+                    .....         1927               dev/vcsa7
+                    .....         1928               dev/vcsa8
+                    .....         1929               dev/vcsa9
+                    .....          261               dev/zero
+                    .....         3392               dev/input/event0
+                    .....         3393               dev/input/event1
+                    .....         3394               dev/input/event2
+                    .....            0               dev/jet/TransferJet_APM2PCLCD
+                    .....            0               dev/jet/TransferJet_PCLCD2APM
+                    .....        63511               dev/jet/adj_drv
+                    .....        63510               dev/jet/event
+                    .....        63509               dev/jet/obex
+                    .....        63507               dev/jet/pcl_obex
+                    .....        63505               dev/jet/pclc_ctr
+                    .....        63506               dev/jet/pclc_msg
+                    .....        63508               dev/jet/scsi_tgt
+                    .....        63512               dev/jet/wrapper
+                    .....         2760               dev/net/tun
+                    .....        63504               dev/usb/adb
+                    .....        63501               dev/usb/buspwr
+                    .....        63500               dev/usb/buspwric
+                    .....        63496               dev/usb/cur
+                    .....        61952               dev/usb/event
+                    .....        61953               dev/usb/gadgetcore
+                    .....        63498               dev/usb/kikilog
+                    .....        63488               dev/usb/massstorage
+                    .....        61954               dev/usb/otgcore
+                    .....        63499               dev/usb/portmon
+                    .....        61956               dev/usb/scsi
+                    .....        63492               dev/usb/sen
+                    .....        63489               dev/usb/sicd_core
+                    .....        63490               dev/usb/sicd_data
+                    .....        63491               dev/usb/sicd_event
+                    .....        63497               dev/usb/std
+                    .....        63503               dev/usb/swic
+                    .....        63493               dev/usb/ter
+                    .....        63495               dev/usb/usb_extcmd
+                    .....        61955               dev/usb/usbcore
+                    .....        63502               dev/usb/usbg_bspwr
+                    .....        63494               dev/usb/vspe
+                    .....         1416          305  etc/DmmConfig.bin
+                    .....          451          370  etc/VerificationKey.pem
+                    .....       101736        70893  lib/ld-2.11.2.so
+                    .....           12           20  lib/ld-linux.so.3
+                    .....       984292       650885  lib/libc-2.11.2.so
+                    .....           14           22  lib/libc.so.6
+                    .....        38532        23704  lib/libcrypt-2.11.2.so
+                    .....           18           26  lib/libcrypt.so.1
+                    .....           18           26  lib/libcrypto.so
+                    .....           18           26  lib/libcrypto.so.1
+                    .....      1123856       656363  lib/libcrypto.so.1.0.0
+                    .....        13976         7935  lib/libdl-2.11.2.so
+                    .....           15           23  lib/libdl.so.2
+                    .....        35324        20949  lib/libgcc_s.so.1
+                    .....       427692       320457  lib/libm-2.11.2.so
+                    .....           14           22  lib/libm.so.6
+                    .....        40928        24327  lib/libproc-3.2.7.so
+                    .....        67996        35402  lib/libpthread-2.11.2.so
+                    .....           20           28  lib/libpthread.so.0
+                    .....        22468        12271  lib/librt-2.11.2.so
+                    .....           15           23  lib/librt.so.1
+                    .....           15           23  lib/libssl.so
+                    .....           15           23  lib/libssl.so.1
+                    .....       248932       144922  lib/libssl.so.1.0.0
+                    .....           15           20  lib/libssp.so
+                    .....           15           20  lib/libssp.so.0
+                    .....         5864         2998  lib/libssp.so.0.0.0
+                    .....           19           27  lib/libstdc++.so
+                    .....           19           27  lib/libstdc++.so.6
+                    .....       669432       309285  lib/libstdc++.so.6.0.14
+                    .....            0               root/IAMUPDATER
+                    .....            9           17  root/chassis
+                    .....        38888        24858  sbin/dosfsck
+                    .....           14           22  sbin/freeramdisk
+                    .....           14           22  sbin/getty
+                    .....           14           22  sbin/halt
+                    .....           14           22  sbin/ifconfig
+                    .....         1451          720  sbin/init
+                    .....           14           22  sbin/insmod
+                    .....           14           22  sbin/lsmod
+                    .....        22836        13705  sbin/mkdosfs
+                    .....           14           22  sbin/pivot_root
+                    .....           14           22  sbin/poweroff
+                    .....           14           22  sbin/reboot
+                    .....           14           22  sbin/rmmod
+                    .....           14           22  sbin/swapoff
+                    .....           14           22  sbin/swapon
+                    D....                            usr/bin
+                    D....                            usr/kmod
+                    D....                            usr/lib
+                    D....                            usr/local
+                    D....                            usr/share
+                    .....         2041          732  usr/bin/UdtrMain.sh
+                    .....         2960         1004  usr/bin/common.src
+                    .....        43280        21795  usr/bin/crypter.elf
+                    .....          874          483  usr/bin/execute_prod.sh
+                    .....         1623          545  usr/bin/execute_ufp.sh
+                    .....          566          290  usr/bin/hash_check.sh
+                    .....          407          228  usr/bin/hash_drop.sh
+                    .....          325          210  usr/bin/hash_update.sh
+                    .....         3051          836  usr/bin/insmod.sh
+                    .....          483          275  usr/bin/is_valid_boot.sh
+                    .....        36572        18821  usr/bin/mf
+                    .....          193          158  usr/bin/mkramdsk.sh
+                    .....         8068         4388  usr/bin/pformat.elf
+                    .....          421          233  usr/bin/prepare-usb.sh
+                    .....        84428        43514  usr/bin/sauu
+                    .....        22648        12462  usr/bin/sen.elf
+                    .....         6812         3643  usr/bin/uc_portctl.elf
+                    .....         3684         1863  usr/bin/ud_cons.elf
+                    .....         8048         4465  usr/bin/ud_darwin_firmup.elf
+                    .....         6864         3667  usr/bin/ud_darwin_init.elf
+                    .....         5940         2580  usr/bin/ud_datcnv.elf
+                    .....         3772         1871  usr/bin/ud_get_mem2file.elf
+                    .....         3508         1716  usr/bin/ud_get_power_ic_type.elf
+                    .....         4848         2479  usr/bin/ud_get_serial_cfg_file.elf
+                    .....         3876         1900  usr/bin/ud_im.elf
+                    .....         4200         2143  usr/bin/ud_init_sio_port_setting.elf
+                    .....         3668         1805  usr/bin/ud_read_lsi_type.elf
+                    .....         8624         4466  usr/bin/ud_reboot.elf
+                    .....         4324         2156  usr/bin/ud_send_lsi.elf
+                    .....         7512         4016  usr/bin/ud_spirom_firmup.elf
+                    .....         4064         2038  usr/bin/ud_timeout_poweroff.elf
+                    .....        19960        11298  usr/bin/ulogio.elf
+                    .....         5008         1465  usr/bin/up.sh
+                    .....          137          107  usr/bin/updater_log.sh
+                    .....          732          301  usr/bin/updater_log_rotate.sh
+                    .....          488          243  usr/bin/updater_storage_backup.sh
+                    .....          589          277  usr/bin/updater_storage_mount.sh
+                    .....          619          303  usr/bin/updater_storage_restore.sh
+                    .....          478          272  usr/bin/us_darwin_firm.sh
+                    .....           89           86  usr/bin/us_darwin_init.sh
+                    .....          336          155  usr/bin/us_error.sh
+                    .....          225           98  usr/bin/usb_insmod.sh
+                    .....       110248        44502  usr/kmod/backup.ko
+                    .....        20560         8896  usr/kmod/ca.ko
+                    .....         3988         1490  usr/kmod/devno.ko
+                    .....        16972         6828  usr/kmod/dmac.ko
+                    .....       106048        48747  usr/kmod/dmm.ko
+                    .....        38484        16185  usr/kmod/emif.ko
+                    .....       212828        89030  usr/kmod/emmc.ko
+                    .....        22204        10756  usr/kmod/i2c.ko
+                    .....        15728         6269  usr/kmod/ldec.ko
+                    .....       143652        54641  usr/kmod/mcmn_drv.ko
+                    .....       221980        96891  usr/kmod/mmc_drv.ko
+                    .....       207888        86429  usr/kmod/ms_drv.ko
+                    .....        39092        19181  usr/kmod/osal_uipc.ko
+                    .....        38452        18388  usr/kmod/osal_ulogio.ko
+                    .....         4896         2139  usr/kmod/osal_utm.ko
+                    .....        12948         5804  usr/kmod/sio.ko
+                    .....         3384         1273  usr/kmod/stream.ko
+                    .....         4144         1716  usr/kmod/stream2.ko
+                    .....        25056         9348  usr/kmod/usb_buspwr.ko
+                    .....         4800         1927  usr/kmod/usb_current.ko
+                    .....        33220        13191  usr/kmod/usb_darwin.ko
+                    .....        14804         6590  usr/kmod/usb_extcmd.ko
+                    .....        21696         9161  usr/kmod/usb_portMonitor.ko
+                    .....        23616         9606  usr/kmod/usbg_buspower.ko
+                    .....         4136         1888  usr/kmod/usbg_cmn.ko
+                    .....        31204        14266  usr/kmod/usbg_sen.ko
+                    .....        27908        11880  usr/kmod/usbg_stillimage.ko
+                    .....        76056        34316  usr/kmod/usbg_storage.ko
+                    .....        20020         8967  usr/kmod/utimer.ko
+                    .....       411548       254414  usr/lib/libInfraFsys.so
+                    .....       302520       124102  usr/lib/libInfraMediaCommon.so
+                    .....        10316         5425  usr/lib/libInfraSKD.so
+                    .....       241412       108828  usr/lib/libMWF.so
+                    .....      1135044        55269  usr/lib/libSysDef.so
+                    .....        41204        20050  usr/lib/libUsbBusPower.so
+                    .....       147508        72017  usr/lib/libUsbControl.so
+                    .....        12152         5881  usr/lib/libbackup.so
+                    .....        26700        16351  usr/lib/libosal_uipc.so
+                    .....        31180        18692  usr/lib/libosal_ulogio.so
+                    .....         4980         2539  usr/lib/libosal_utm.so
+                    .....         4416         2229  usr/lib/libpro00.so
+                    .....       142348        69728  usr/lib/libptp.so
+                    .....       343200       105750  usr/lib/libsencore.so
+                    .....        56664        24563  usr/lib/libsensapi.so
+                    .....        10932         5144  usr/lib/libsenupdater.so
+                    .....        12320         6885  usr/lib/libtestcmd.so
+                    .....         6284         3273  usr/lib/libtestcmd_scn.so
+                    .....         4560         2239  usr/lib/libul_GpioCtrl.so
+                    .....        56676        23596  usr/lib/libul_xml.so
+                    .....        18324         9479  usr/lib/libupdater0604.so
+                    .....        37048        16076  usr/lib/libupdatercommon.so
+                    .....         3456         1668  usr/lib/libupdatertalk.so
+                    .....         4372         2128  usr/lib/libupdaterufunc.so
+                    .....        89056        45421  usr/lib/libusb.so
+                    .....        23936        10785  usr/lib/libusbcmd.so
+                    D....                            usr/local/lib
+                    D....                            usr/share/terminfo
+                    D....                            usr/share/terminfo/l
+                    .....         1740          799  usr/share/terminfo/l/linux

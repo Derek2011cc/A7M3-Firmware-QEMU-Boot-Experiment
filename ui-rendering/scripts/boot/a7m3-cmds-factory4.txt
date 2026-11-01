@@ -1,0 +1,8 @@
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so w:0x1 w:0x0; echo RC1=$?
+sleep 2
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so b:0x1 b:0x0 b:0x0 b:0x0; echo RC2=$?
+sleep 2
+/usr/bin/scenario.elf /scenario/MPR_SCN_SET_FACTORY_MODE.so; echo RC3=$?
+sleep 2
+/usr/bin/scenario.elf /scenario/MPR_SCN_EXEC_FACTORY_MODE.so w:0x1; echo RC4=$?
+sleep 2

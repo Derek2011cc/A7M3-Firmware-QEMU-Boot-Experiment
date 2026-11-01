@@ -1,0 +1,1 @@
+sleep 3; mount -t tmpfs none /tmp; busybox dd if=/dev/mem bs=4096 skip=65536 count=2 of=/tmp/v.so; echo AfAdjustment > /tmp/viewlist; /usr/bin/scenario.elf ../../tmp/v b:0x01; sleep 60; echo DONE

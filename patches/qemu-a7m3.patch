@@ -1,0 +1,278 @@
+diff --git a/hw/arm/bionz.c b/hw/arm/bionz.c
+index 3c146fb..2f19af8 100644
+--- a/hw/arm/bionz.c
++++ b/hw/arm/bionz.c
+@@ -2,6 +2,7 @@
+ 
+ #include "qemu/osdep.h"
+ #include "cpu.h"
++#include "exec/address-spaces.h"
+ #include "hw/sysbus.h"
+ #include "hw/block/flash.h"
+ #include "hw/boards.h"
+@@ -210,10 +211,22 @@
+ #define CXD90014_INITRD_OFFSET 0x00628000
+ 
+ //////////////////////////// CXD90045 ////////////////////////////
++/* A7M3 (CXD90045): the kernel is linked with PAGE_OFFSET 0x60000000 and
++ * PHYS_OFFSET 0, so it is loaded at physical DDR0_BASE + TEXT_OFFSET and
++ * its link addresses (0x60108000+) are virtual. */
+ #define CXD90045_DDR0_BASE 0x00000000
++/* The 4.03 main kernel's real boot parameters live in nflasha2:/kemco.txt
++ * (not the updater's nflasha1/BOOT/KEMCO.TXT):
++ *   mem=1G@0, mem=256M@0x80000000@1,
++ *   memrsv=704M@0x14000000:uc, memrsv=14M@0x80000000:uc,
++ *   memrsv=242M@0x80e00000:uc, plus smaller reservations.
++ * parse_memrsv() feeds the "uc" regions into Sony's noncache address table
++ * at 0x604e07e0; without them arch_phys_to_noncache() rejects LIRO's
++ * 0x8bdc1200 buffers (inside DDR1). */
+ #define CXD90045_DDR0_SIZE 0x40000000
++/* DDR1: 256 MiB at 0x80000000 (main kernel mem=256M@0x80000000@1). */
+ #define CXD90045_DDR1_BASE 0x80000000
+-#define CXD90045_DDR1_SIZE 0x40000000
++#define CXD90045_DDR1_SIZE 0x10000000
+ #define CXD90045_DDRC_BASE(i) (0xf0104000 + (i) * 0x1000)
+ #define CXD90045_SRAM_BASE 0xfe000000
+ #define CXD90045_SRAM_SIZE 0x01000000
+@@ -241,6 +254,11 @@
+ 
+ #define CXD90045_TEXT_OFFSET 0x00108000
+ #define CXD90045_INITRD_OFFSET 0x00700000
++#define CXD90045_ATAGS_ADDR (CXD90045_DDR0_BASE + 0x00010000)
++/* Memory-related options copied from the main kernel's real boot config
++ * (eMMC image, around file offset 0x9bcad0).  The `mem=` lines are omitted
++ * because the same banks are already supplied through ATAG_MEM. */
++#define CXD90045_CMDLINE "console=ttyAM0,115200 root=/dev/ram0 rw ignore_loglevel earlyprintk initcall_debug ip=off log_buf_len=4M memrsv=1M@0 memrsv=0x8000@0xF00000 memrsv=0x1A5E000@0x02E68000 memrsv=0xA6EB000@0x09915000 memrsv=704M@0x14000000:uc memrsv=14M@0x80000000:uc memrsv=242M@0x80e00000:uc"
+ 
+ #define NAND_SECTOR_SIZE 0x200
+ #define NAND_PAGE_SIZE 0x1000
+@@ -380,6 +398,70 @@ static void cxd_write_bootloader(hwaddr base, hwaddr target)
+     rom_add_blob_fixed("bootloader", loader, sizeof(loader), base);
+ }
+ 
++/* Local experiment: minimal ATAGS for the ARM32 Linux boot protocol. */
++static void cxd90045_write_atags(uint32_t addr, uint32_t initrd_start,
++                                 uint32_t initrd_size, const char *cmdline)
++{
++    uint32_t buffer[256];
++    uint32_t *p = buffer;
++    int len = strlen(cmdline) + 1;
++    int words = (len + 3) / 4;
++
++    /* ATAG layout: size first, then tag (struct tag_header). */
++    *p++ = 5;         /* ATAG_CORE */
++    *p++ = 0x54410001;
++    *p++ = 0;
++    *p++ = 4096;
++    *p++ = 0;
++
++    /* struct tag_mem32 { __u32 size; __u32 start; } */
++    *p++ = 4;         /* ATAG_MEM: DDR0 at 0x60000000, 1 GiB */
++    *p++ = 0x54410002;
++    *p++ = CXD90045_DDR0_SIZE;
++    *p++ = CXD90045_DDR0_BASE;
++
++    *p++ = 4;         /* ATAG_MEM: DDR1, 256 MiB at 0x80000000 */
++    *p++ = 0x54410002;
++    *p++ = CXD90045_DDR1_SIZE;
++    *p++ = CXD90045_DDR1_BASE;
++
++    *p++ = 2 + words; /* ATAG_CMDLINE */
++    *p++ = 0x54410009;
++    memset(p, 0, words * 4);
++    memcpy(p, cmdline, len);
++    p += words;
++
++    *p++ = 4;         /* ATAG_INITRD2 (0x54420005; 0x54410005 is deprecated ATAG_INITRD) */
++    *p++ = 0x54420005;
++    *p++ = initrd_start;
++    *p++ = initrd_size;
++
++    *p++ = 0;         /* ATAG_NONE */
++    *p++ = 0;
++
++    rom_add_blob_fixed("atags", buffer, (p - buffer) * 4, addr);
++}
++
++/* Local experiment: set r0/r1/r2 for the ARM32 Linux boot protocol. */
++static void cxd_write_bootloader_with_machine(hwaddr base, hwaddr target,
++                                              uint32_t machine, uint32_t atags)
++{
++    int i;
++    uint32_t loader[] = {
++        0xe3a00000, /* mov r0, #0 */
++        0xe59f200c, /* ldr r2, [pc, #12] */
++        0xe59f1004, /* ldr r1, [pc, #4] */
++        0xe51ff004, /* ldr pc, [pc, #-4] */
++        target,
++        machine,
++        atags,
++    };
++    for (i = 0; i < ARRAY_SIZE(loader); i++) {
++        loader[i] = tswap32(loader[i]);
++    }
++    rom_add_blob_fixed("bootloader", loader, sizeof(loader), base);
++}
++
+ static void cxd4108_init(MachineState *machine)
+ {
+     DriveInfo *dinfo;
+@@ -1010,8 +1092,9 @@ static void cxd90045_init(MachineState *machine)
+     memory_region_add_subregion(get_system_memory(), CXD90045_SRAM_BASE, mem);
+ 
+     mem = g_new(MemoryRegion, 1);
+-    memory_region_init_ram(mem, NULL, "bootrom", CXD90045_BOOTROM_SIZE, &error_fatal);
+-    memory_region_set_readonly(mem, true);
++    /* The Linux kernel uses high vectors at 0xffff0000 and copies its
++     * vector page there, so this must be writable RAM after reset. */
++    memory_region_init_ram(mem, NULL, "vectors", CXD90045_BOOTROM_SIZE, &error_fatal);
+     memory_region_add_subregion(get_system_memory(), CXD90045_BOOTROM_BASE, mem);
+ 
+     dev = qdev_new(TYPE_A9MPCORE_PRIV);
+@@ -1033,7 +1116,7 @@ static void cxd90045_init(MachineState *machine)
+     }
+ 
+     dev = qdev_new("bionz_bootcon");
+-    qdev_prop_set_chr(dev, "chardev", serial_hd(0));
++    /* Local port: serial0 is reserved for the PL011 UART used as Linux console. */
+     sysbus_realize_and_unref(SYS_BUS_DEVICE(dev), &error_fatal);
+     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, CXD90045_BOOTCON_BASE);
+ 
+@@ -1072,9 +1155,40 @@ static void cxd90045_init(MachineState *machine)
+     }
+ 
+     if (machine->kernel_filename) {
++        ssize_t initrd_size;
++        /*
++         * Sony's kernel expects the bootloader (EXBL) to have populated the
++         * initial page tables, including the page holding swapper_pg_dir.
++         * Without a bootloader, setup_arch faults reading the ATAGS.
++         * The kernel is linked for PAGE_OFFSET 0x60000000 / PHYS_OFFSET 0;
++         * before setup_arch reads the ATAGS it does __va(0x00010000), which
++         * is VA 0x60010000.  Prepopulate that one 1 MiB section (the head
++         * code maps the kernel image sections itself).
++         */
++        {
++            uint32_t pgd[4096];
++            memset(pgd, 0, sizeof(pgd));
++            pgd[0x600] = (CXD90045_DDR0_BASE & 0xfff00000) | 0x00011c0e;
++            uint32_t readback = 0;
++            address_space_write(&address_space_memory,
++                                CXD90045_DDR0_BASE + 0x00104000,
++                                MEMTXATTRS_UNSPECIFIED, pgd, sizeof(pgd));
++            address_space_read(&address_space_memory,
++                               CXD90045_DDR0_BASE + 0x00105800,
++                               MEMTXATTRS_UNSPECIFIED, &readback, 4);
++            fprintf(stderr, "A7M3: wrote initial pgd at 0x%08x "
++                    "(pgd[0x600]=0x%08x readback=0x%08x)\n",
++                    (unsigned)(CXD90045_DDR0_BASE + 0x00104000),
++                    (unsigned)pgd[0x600], (unsigned)readback);
++        }
+         load_image_targphys(machine->kernel_filename, CXD90045_DDR0_BASE + CXD90045_TEXT_OFFSET, CXD90045_DDR0_SIZE - CXD90045_TEXT_OFFSET);
+-        load_image_targphys(machine->initrd_filename, CXD90045_DDR0_BASE + CXD90045_INITRD_OFFSET, CXD90045_DDR0_SIZE - CXD90045_INITRD_OFFSET);
+-        cxd_write_bootloader(CXD90045_BOOTROM_BASE, CXD90045_DDR0_BASE + CXD90045_TEXT_OFFSET);
++        initrd_size = load_image_targphys(machine->initrd_filename, CXD90045_DDR0_BASE + CXD90045_INITRD_OFFSET, CXD90045_DDR0_SIZE - CXD90045_INITRD_OFFSET);
++        cxd90045_write_atags(CXD90045_ATAGS_ADDR,
++                             CXD90045_DDR0_BASE + CXD90045_INITRD_OFFSET,
++                             initrd_size, CXD90045_CMDLINE);
++        cxd_write_bootloader_with_machine(CXD90045_BOOTROM_BASE,
++                                          CXD90045_DDR0_BASE + CXD90045_TEXT_OFFSET,
++                                          0x11a, CXD90045_ATAGS_ADDR);
+     } else if (bios_name) {
+         load_image_targphys(bios_name, CXD90045_BOOTROM_BASE, CXD90045_BOOTROM_SIZE);
+     } else if (drive) {
+diff --git a/hw/char/pl011.c b/hw/char/pl011.c
+index 13e784f..abb97a8 100644
+--- a/hw/char/pl011.c
++++ b/hw/char/pl011.c
+@@ -109,6 +109,14 @@ static uint64_t pl011_read(void *opaque, hwaddr offset,
+         r = s->rsr;
+         break;
+     case 6: /* UARTFR */
++        {
++            static int a7m3_fr_count;
++            if (a7m3_fr_count < 200) {
++                fprintf(stderr, "A7M3-PL011-FR[%d] = 0x%x\n",
++                        a7m3_fr_count, s->flags);
++            }
++            a7m3_fr_count++;
++        }
+         r = s->flags;
+         break;
+     case 8: /* UARTILPR */
+@@ -177,10 +185,29 @@ static void pl011_write(void *opaque, hwaddr offset,
+ 
+     trace_pl011_write(offset, value);
+ 
++    {
++        static int a7m3_wr_count;
++        if (a7m3_wr_count < 400) {
++            fprintf(stderr, "A7M3-PL011-WR[%d] off=0x%x val=0x%llx size=%u\n",
++                    a7m3_wr_count, (unsigned)offset,
++                    (unsigned long long)value, size);
++        }
++        a7m3_wr_count++;
++    }
++
+     switch (offset >> 2) {
+     case 0: /* UARTDR */
+         /* ??? Check if transmitter is enabled.  */
+         ch = value;
++        {
++            static int a7m3_tx_count;
++            if (a7m3_tx_count < 200) {
++                fprintf(stderr, "A7M3-PL011-TX[%d] 0x%02x %c\n",
++                        a7m3_tx_count, ch,
++                        (ch >= 32 && ch < 127) ? ch : '.');
++            }
++            a7m3_tx_count++;
++        }
+         /* XXX this blocks entire thread. Rewrite to use
+          * qemu_chr_fe_write and background I/O callbacks */
+         qemu_chr_fe_write_all(&s->chr, &ch, 1);
+diff --git a/target/arm/helper.c b/target/arm/helper.c
+index ce0f378..ac11cd4 100644
+--- a/target/arm/helper.c
++++ b/target/arm/helper.c
+@@ -20,6 +20,7 @@
+ #include "qemu/crc32c.h"
+ #include "qemu/qemu-print.h"
+ #include "exec/exec-all.h"
++#include "exec/address-spaces.h"
+ #include <zlib.h> /* For crc32 */
+ #include "hw/irq.h"
+ #include "hw/semihosting/semihost.h"
+@@ -9856,6 +9857,33 @@ void arm_cpu_do_interrupt(CPUState *cs)
+     arm_log_exception(cs->exception_index);
+     qemu_log_mask(CPU_LOG_INT, "...from EL%d to EL%d\n", arm_current_el(env),
+                   new_el);
++    if (cs->exception_index == EXCP_DATA_ABORT) {
++        qemu_log_mask(CPU_LOG_INT,
++                      "...PC 0x%" PRIx32 " DFAR 0x%x TTBR0 0x%" PRIx64
++                      " TTBCR 0x%x SCTLR 0x%" PRIx64 "\n",
++                      env->regs[15], env->cp15.dfar_ns,
++                      env->cp15.ttbr0_ns, env->cp15.tcr_el[1].raw_tcr,
++                      env->cp15.sctlr_el[1]);
++        qemu_log_mask(CPU_LOG_INT,
++                      "...regs r0=0x%" PRIx32 " r1=0x%" PRIx32
++                      " r2=0x%" PRIx32 " r3=0x%" PRIx32
++                      " r12=0x%" PRIx32 " sp=0x%" PRIx32
++                      " lr=0x%" PRIx32 " cpsr=0x%" PRIx32 "\n",
++                      env->regs[0], env->regs[1], env->regs[2],
++                      env->regs[3], env->regs[12], env->regs[13],
++                      env->regs[14], env->uncached_cpsr);
++        {
++            uint64_t t = env->cp15.ttbr0_ns & ~0x3fffULL;
++            uint32_t fa = (uint32_t)env->exception.vaddress;
++            uint32_t idx = (fa >> 20) & 0xfff;
++            uint32_t ent = 0xdeadbeef;
++            address_space_read(&address_space_memory, t + idx * 4,
++                               MEMTXATTRS_UNSPECIFIED, &ent, 4);
++            qemu_log_mask(CPU_LOG_INT,
++                          "...walkL1 base=0x%" PRIx64
++                          " idx=0x%x ent=0x%x\n", t, idx, ent);
++        }
++    }
+     if (qemu_loglevel_mask(CPU_LOG_INT)
+         && !excp_is_internal(cs->exception_index)) {
+         qemu_log_mask(CPU_LOG_INT, "...with ESR 0x%x/0x%" PRIx32 "\n",

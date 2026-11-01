@@ -1,0 +1,13 @@
+Source: a7m3-uiprobe13.log (in-app /proc/self/maps dump, deduplicated).
+
+040d9000-040da000 r--p 00000000 fc:0f 4268       /usr/share/app/viewRootPowerSw.uxc
+04b73000-04b7d000 r-xp 00000000 fc:0f 16395      /usr/lib/libOnDemandLoader.so
+04b7d000-04b84000 ---p 0000a000 fc:0f 16395      /usr/lib/libOnDemandLoader.so
+04b84000-04b85000 rw-p 00009000 fc:0f 16395      /usr/lib/libOnDemandLoader.so
+0637c000-07571000 r-xp 00000000 fc:0f 16389      /usr/lib/libObj.so
+07571000-07579000 ---p 011f5000 fc:0f 16389      /usr/lib/libObj.so
+07579000-0766c000 rw-p 011f5000 fc:0f 16389      /usr/lib/libObj.so
+145ee000-14e38000 r-xp 00000000 fc:0f 16537      /usr/lib/viewUnified2.so
+14e38000-14e3f000 ---p 0084a000 fc:0f 16537      /usr/lib/viewUnified2.so
+14e3f000-15050000 rw-p 00849000 fc:0f 16537      /usr/lib/viewUnified2.so
+0610d000-0610f000 r--p 00000000 fc:0f 4147       /usr/share/app/viewSettingMenu.uxc
