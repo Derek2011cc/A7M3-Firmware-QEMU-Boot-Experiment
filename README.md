@@ -16,6 +16,7 @@
 |---|---|
 | **[a7m3-QEMU-shell](https://github.com/Derek2011cc/a7m3-QEMU-shell)** | **本仓库的“下载即用”子仓库**：包含内核、initrd、压缩分片的 2 GiB eMMC 镜像、预编译 QEMU 和浏览器串口终端；`run.cmd` / `./run.sh web` 直接进入 A7M3 虚拟机 shell，不需要自己准备固件或编译。 |
 | [a7m3-connect-shell](https://github.com/Derek2011cc/a7m3-connect-shell) | 服务模式（Senser）连接工具：真机 root shell、`cmd`/`push`/`pull`，可用于只读分区转储，为 QEMU 镜像准备输入。 |
+| [A7M3-System-Analysis](https://github.com/Derek2011cc/A7M3-System-Analysis) | 系统结构逆向分仓库：1177 个文件的逐项作用、分层架构与调用关系；本仓库负责启动链/QEMU/服务模式/菜单渲染，该仓库只做文件系统结构分析。 |
 
 如果你只想**尽快使用 A7M3 虚拟机 shell**，请直接去
 [a7m3-QEMU-shell](https://github.com/Derek2011cc/a7m3-QEMU-shell)；
